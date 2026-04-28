@@ -2,7 +2,7 @@
 
 module(
     name = "rules_helm",
-    version = "0.1.0",
+    version = "0.2.0",
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
@@ -22,7 +22,11 @@ use_repo(helm,
     "helm_darwin_amd64",
 )
 
-register_toolchains("@rules_helm//toolchain:all")
+register_toolchains(
+    "@helm_linux_amd64//:toolchain",
+    "@helm_darwin_amd64//:toolchain",
+    "@helm_darwin_arm64//:toolchain",
+)
 
 # ---- dev-only: rules_shell for the assertion test that greps the rendered
 # YAML. Consumers do NOT inherit this — the public rules emit their own

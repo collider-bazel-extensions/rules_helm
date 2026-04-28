@@ -2,22 +2,31 @@
 
 - Analysis tests verify the rules instantiate cleanly without invoking
   helm.
-- `:example_render` and `:example_lint` exercise the rules end-to-end
-  against `tests/example_chart/` (Chart.yaml + Deployment + Service
-  templates). Both run the real helm binary and assert its output.
-- `:example_render_yaml_test` checks that the rendered YAML contains the
-  specific objects we expect — proves the action wired everything up.
+- `:example_render`, `:example_lint`, `:example_package` exercise the
+  rules end-to-end against `tests/example_chart/` (Chart.yaml +
+  Deployment + Service templates). All three run the real helm binary.
+- `:example_render_yaml_test` greps the rendered YAML.
+- `:example_package_tgz_test` extracts the packaged .tgz and asserts the
+  expected files are present + the archive's mtimes are normalized to 0
+  (so the packaging is reproducible).
 """
 
-load("@rules_helm//:defs.bzl", "helm_lint", "helm_template")
+load("@rules_helm//:defs.bzl", "helm_lint", "helm_package", "helm_template")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load(":analysis_tests.bzl", "helm_lint_test_suite", "helm_template_test_suite")
+load(
+    ":analysis_tests.bzl",
+    "helm_lint_test_suite",
+    "helm_package_test_suite",
+    "helm_template_test_suite",
+)
 
 # ---- analysis ---------------------------------------------------------------
 
 helm_template_test_suite(name = "helm_template_analysis")
 
 helm_lint_test_suite(name = "helm_lint_analysis")
+
+helm_package_test_suite(name = "helm_package_analysis")
 
 # ---- end-to-end --------------------------------------------------------------
 # Run the real helm binary.
@@ -38,12 +47,25 @@ helm_lint(
     strict = True,
 )
 
-# Asserts the rendered YAML contains the expected objects (proves the
-# action ran helm template with the right release name + values, not
-# just that helm exited 0).
+helm_package(
+    name = "example_package",
+    chart = ["//tests/example_chart:files"],
+    chart_version = "0.2.0-test",
+)
+
+# Asserts the rendered YAML contains the expected objects.
 sh_test(
     name = "example_render_yaml_test",
     srcs = ["assert_rendered.sh"],
     data = [":example_render"],
     args = ["$(rootpath :example_render)"],
+)
+
+# Asserts the .tgz contains expected files AND the inner-tar mtimes are
+# all 0 (proving the determinism re-pack happened).
+sh_test(
+    name = "example_package_tgz_test",
+    srcs = ["assert_packaged.sh"],
+    data = [":example_package"],
+    args = ["$(rootpath :example_package)"],
 )

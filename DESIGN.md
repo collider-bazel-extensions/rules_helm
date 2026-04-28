@@ -47,10 +47,16 @@ hermetic CLI. Distinct from the in-cluster operator rules
 | End-to-end exercise via `tests/example_chart/` (real helm template + lint, plus YAML-content assertion) | planned |
 | End-to-end `bazel test` runtime | planned (validated under CI; macOS pending) |
 
-## Deferred (not v0.1.0)
+## v0.2.0 (2026-04-28)
 
-- **`helm_package`** — produce a `.tgz` chart artifact. Useful but adds determinism work (tar mtimes etc.).
+- **`helm_package`** shipped. Wraps `helm package` then re-packs the resulting `.tgz` with `tar --mtime='@0' --sort=name --owner=0 --group=0 --numeric-owner` and `gzip -n -9`. Two builds against the same chart inputs produce byte-identical archives. End-to-end test asserts every entry in the produced tarball has 1970-01-01 mtime.
+- **Helm 4.1.4** added alongside 3.20.2 in `HELM_VERSIONS`. Default remains 3.20.2 (the existing maintainer scripts in `rules_capsule` / `rules_cilium` are written against v3 syntax). Pick v4 via `helm.version(version = "4.1.4")`.
+- **Toolchain emission moved to per-platform repo.** Previously `//toolchain:BUILD.bazel` declared toolchain instances with a hardcoded version; now each `helm_<plat>` repo (created by the module extension) emits its own `:toolchain_impl` + `:toolchain` at the version that was actually fetched. Consumers register `@helm_<plat>//:toolchain` instead of `@rules_helm//toolchain:all`. Fixes a v0.1 wart: `HelmInfo.version` now reflects `helm.version()` instead of a hardcoded "3.20.2".
+
+## Deferred (not v0.2.0)
+
 - **`helm_push`** — push to an OCI registry. Needs registry creds; out of scope for a hermetic CLI rule set.
 - **`helm_install` / `helm_upgrade`** — runtime path against a live cluster. The in-cluster operator rule sets (`rules_certmanager`, `rules_cilium`, etc.) cover this need via their `*_install` rules; rules_helm is the build-time CLI rule set.
-- **Helm v4 default** — wait until the existing maintainer scripts in `rules_capsule` / `rules_cilium` are validated against v4. Add as a parallel version entry, not a replacement.
+- **Helm v4 as default** — wait until the existing maintainer scripts in `rules_capsule` / `rules_cilium` are validated against v4. v4 is shipped as a parallel version entry now, not the default.
 - **`system` extension mode** — `helm.system()` to honor host-installed `helm`. Add when a consumer asks.
+- **Multi-version `use_repo` shape** — currently a consumer can call `helm.version()` exactly once. Supporting multiple versions side-by-side (`helm_3_20_2_<plat>` + `helm_4_1_4_<plat>`) is a deeper rework; defer until a real consumer wants it.

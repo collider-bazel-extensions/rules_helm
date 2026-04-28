@@ -15,6 +15,7 @@ bzl_library(
     srcs = ["defs.bzl"],
     deps = [
         "//private:helm_lint",
+        "//private:helm_package",
         "//private:helm_template",
         "//private:providers",
     ],

@@ -1,10 +1,14 @@
 # rules_helm
 
-Hermetic [Helm](https://helm.sh/) CLI for Bazel. Two rules:
+Hermetic [Helm](https://helm.sh/) CLI for Bazel. Three rules:
 
 - **`helm_template`** — action rule that renders a chart directory to a
   single YAML file at build time. The hermetic Bazel-native equivalent
   of `helm template <release> <chart-dir> > out.yaml`.
+- **`helm_package`** — action rule that produces a **deterministic**
+  `.tgz` chart archive. Wraps `helm package` and re-packs with
+  normalized metadata (mtime=0, sorted entries, gzip without timestamp)
+  so the bytes are reproducible across builds.
 - **`helm_lint`** — test rule that runs `helm lint <chart>` and fails
   the test on non-zero exit.
 
@@ -14,7 +18,8 @@ is sha256-pinned and downloaded by the bzlmod extension.
 **Supported platforms (v0.1):** Linux x86\_64, macOS x86\_64, macOS arm64.
 Linux validated in CI; macOS pending. See [Contributing](#contributing).
 
-**Pinned versions:** Helm 3.20.2.
+**Pinned versions (selectable):** Helm 3.20.2 (default) or Helm 4.1.4.
+Pick via `helm.version(version = "...")` in your `MODULE.bazel`.
 
 ---
 
@@ -24,6 +29,7 @@ Linux validated in CI; macOS pending. See [Contributing](#contributing).
 - [Quickstart](#quickstart)
 - [Rules](#rules)
   - [helm\_template](#helm_template)
+  - [helm\_package](#helm_package)
   - [helm\_lint](#helm_lint)
 - [Providers](#providers)
 - [Hermeticity exceptions](#hermeticity-exceptions)
@@ -34,10 +40,10 @@ Linux validated in CI; macOS pending. See [Contributing](#contributing).
 ## Installation
 
 ```python
-bazel_dep(name = "rules_helm", version = "0.1.0")
+bazel_dep(name = "rules_helm", version = "0.2.0")
 
 helm = use_extension("@rules_helm//:extensions.bzl", "helm")
-helm.version(version = "3.20.2")
+helm.version(version = "3.20.2")  # or "4.1.4"
 
 use_repo(helm,
     "helm_linux_amd64",
@@ -45,8 +51,16 @@ use_repo(helm,
     "helm_darwin_arm64",
 )
 
-register_toolchains("@rules_helm//toolchain:all")
+register_toolchains(
+    "@helm_linux_amd64//:toolchain",
+    "@helm_darwin_amd64//:toolchain",
+    "@helm_darwin_arm64//:toolchain",
+)
 ```
+
+Each per-platform repo emits its own `:toolchain` carrying the version
+that was actually fetched, so `HelmInfo.version` reflects what
+`helm.version()` chose rather than a hardcoded value.
 
 `rules_helm` is **Bzlmod-only** in v0.1. Until it lands in BCR, consume
 via `archive_override` or a git pin pointing at a tag.
@@ -121,6 +135,30 @@ helm_template(
 
 The output is a single file named `<name>.yaml`. The rule scans `chart`
 for `Chart.yaml` to determine the chart root.
+
+### `helm_package`
+
+Action rule wrapping `helm package <chart-dir>`, then re-packing the
+resulting tarball with normalized metadata so the output is
+reproducible.
+
+```python
+helm_package(
+    name = "chart_tgz",
+    chart = [":files"],            # filegroup of all chart files
+    chart_version = "1.2.3",       # optional, --version (overrides Chart.yaml)
+    app_version = "1.0",           # optional, --app-version
+    helm_package_args = [],        # escape hatch
+)
+```
+
+The output is a single file named `<name>.tgz`. Every entry has
+`mtime=0`, sorted alphabetically; the gzip header has no timestamp or
+filename. Two builds against the same inputs produce byte-identical
+`.tgz` files.
+
+If you need the canonical `<chartname>-<version>.tgz` filename, rename
+downstream via a `genrule` or `pkg_tar`.
 
 ### `helm_lint`
 

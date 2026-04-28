@@ -42,6 +42,23 @@ HELM_VERSIONS = {
             "strip":  "darwin-arm64",
         },
     },
+    "4.1.4": {
+        "linux_amd64": {
+            "url":    "https://get.helm.sh/helm-v4.1.4-linux-amd64.tar.gz",
+            "sha256": "70b2c30a19da4db264dfd68c8a3664e05093a361cefd89572ffb36f8abfa3d09",
+            "strip":  "linux-amd64",
+        },
+        "darwin_amd64": {
+            "url":    "https://get.helm.sh/helm-v4.1.4-darwin-amd64.tar.gz",
+            "sha256": "abf09c8503ad1d8ef76d3737a058c3456a998aae5f5966fce4bb3031aeb1654e",
+            "strip":  "darwin-amd64",
+        },
+        "darwin_arm64": {
+            "url":    "https://get.helm.sh/helm-v4.1.4-darwin-arm64.tar.gz",
+            "sha256": "7c2eca678e8001fa863cdf8cbf6ac1b3799f9404a89eb55c08260ef5732e658d",
+            "strip":  "darwin-arm64",
+        },
+    },
 }
 
 PLATFORMS = {
