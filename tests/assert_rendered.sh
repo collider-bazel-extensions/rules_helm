@@ -25,6 +25,14 @@ must_contain "kind: Service"
 must_contain 'image: "nginx:1.27.4"'
 # Service-port flowing through container.
 must_contain "containerPort: 80"
+# Subchart's ConfigMap should also render — proves chart-root detection
+# picked the shallowest Chart.yaml (the parent's) and helm subchart
+# resolution worked. If the rule mistakenly picked the subchart's
+# Chart.yaml as the root, neither the Deployment nor this CM would be
+# present together.
+must_contain "kind: ConfigMap"
+must_contain "name: smoke-sub"
+must_contain "from subchart"
 
 if (( failed )); then
   echo "---- rendered YAML ----" >&2

@@ -20,17 +20,16 @@ def _impl(ctx):
     tc = ctx.toolchains["//toolchain:helm"]
     helm = tc.helm.helm_bin
 
-    # Find Chart.yaml among the chart inputs to determine the chart root.
+    # Find the chart-root Chart.yaml. Charts may have subcharts under
+    # `charts/<sub>/Chart.yaml`, so a single chart legitimately contains
+    # multiple Chart.yaml files. Pick the one at the shallowest path
+    # (fewest components in dirname) as the root; subcharts always live
+    # deeper.
     chart_yaml = None
     for f in ctx.files.chart:
-        if f.basename == "Chart.yaml":
-            if chart_yaml != None:
-                fail(
-                    "helm_template {}: chart contains more than one Chart.yaml ({} and {}). " +
-                    "Each helm_template target should point at exactly one chart.".format(
-                        ctx.label, chart_yaml.path, f.path,
-                    ),
-                )
+        if f.basename != "Chart.yaml":
+            continue
+        if chart_yaml == None or f.path.count("/") < chart_yaml.path.count("/"):
             chart_yaml = f
     if chart_yaml == None:
         fail("helm_template {}: chart attr must include a Chart.yaml file".format(ctx.label))
