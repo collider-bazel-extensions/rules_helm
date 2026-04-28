@@ -1,0 +1,49 @@
+"""Tests for rules_helm.
+
+- Analysis tests verify the rules instantiate cleanly without invoking
+  helm.
+- `:example_render` and `:example_lint` exercise the rules end-to-end
+  against `tests/example_chart/` (Chart.yaml + Deployment + Service
+  templates). Both run the real helm binary and assert its output.
+- `:example_render_yaml_test` checks that the rendered YAML contains the
+  specific objects we expect — proves the action wired everything up.
+"""
+
+load("@rules_helm//:defs.bzl", "helm_lint", "helm_template")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load(":analysis_tests.bzl", "helm_lint_test_suite", "helm_template_test_suite")
+
+# ---- analysis ---------------------------------------------------------------
+
+helm_template_test_suite(name = "helm_template_analysis")
+
+helm_lint_test_suite(name = "helm_lint_analysis")
+
+# ---- end-to-end --------------------------------------------------------------
+# Run the real helm binary.
+
+helm_template(
+    name = "example_render",
+    chart = ["//tests/example_chart:files"],
+    set_strings = {
+        "image.tag": "1.27.4",
+    },
+    namespace = "demo",
+    release_name = "smoke",
+)
+
+helm_lint(
+    name = "example_lint",
+    chart = ["//tests/example_chart:files"],
+    strict = True,
+)
+
+# Asserts the rendered YAML contains the expected objects (proves the
+# action ran helm template with the right release name + values, not
+# just that helm exited 0).
+sh_test(
+    name = "example_render_yaml_test",
+    srcs = ["assert_rendered.sh"],
+    data = [":example_render"],
+    args = ["$(rootpath :example_render)"],
+)

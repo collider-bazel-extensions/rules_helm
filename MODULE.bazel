@@ -1,0 +1,31 @@
+"""rules_helm — hermetic Helm CLI for Bazel: helm_template, helm_lint."""
+
+module(
+    name = "rules_helm",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "platforms", version = "1.0.0")
+
+helm = use_extension("//:extensions.bzl", "helm")
+
+# Pinned Helm release. The extension fetches the per-platform tarball at
+# the sha256 pinned in private/versions.bzl, extracts the `helm` binary,
+# and exposes it as a hermetic toolchain. Add more versions by tagging
+# them in versions.bzl and calling helm.version() again.
+helm.version(version = "3.20.2")
+
+use_repo(helm,
+    "helm_linux_amd64",
+    "helm_darwin_arm64",
+    "helm_darwin_amd64",
+)
+
+register_toolchains("@rules_helm//toolchain:all")
+
+# ---- dev-only: rules_shell for the assertion test that greps the rendered
+# YAML. Consumers do NOT inherit this — the public rules emit their own
+# executables/files via raw ctx.actions, so no rules_shell dep crosses the
+# boundary.
+bazel_dep(name = "rules_shell", version = "0.8.0", dev_dependency = True)

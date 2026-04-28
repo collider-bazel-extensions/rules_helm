@@ -1,0 +1,60 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":toolchain.bzl", "helm_toolchain")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["toolchain.bzl"])
+
+toolchain_type(name = "helm")
+
+# Per-platform toolchains. Each `helm_<plat>` repo (created by the module
+# extension) contains the helm binary for one platform; the toolchain
+# selects the right repo based on the resolved exec platform.
+
+helm_toolchain(
+    name     = "helm_linux_amd64_impl",
+    version  = "3.20.2",
+    helm_bin = "@helm_linux_amd64//:bin",
+)
+
+toolchain(
+    name                    = "helm_linux_amd64",
+    toolchain_type          = ":helm",
+    exec_compatible_with    = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+    target_compatible_with  = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+    toolchain               = ":helm_linux_amd64_impl",
+)
+
+helm_toolchain(
+    name     = "helm_darwin_amd64_impl",
+    version  = "3.20.2",
+    helm_bin = "@helm_darwin_amd64//:bin",
+)
+
+toolchain(
+    name                    = "helm_darwin_amd64",
+    toolchain_type          = ":helm",
+    exec_compatible_with    = ["@platforms//os:osx", "@platforms//cpu:x86_64"],
+    target_compatible_with  = ["@platforms//os:osx", "@platforms//cpu:x86_64"],
+    toolchain               = ":helm_darwin_amd64_impl",
+)
+
+helm_toolchain(
+    name     = "helm_darwin_arm64_impl",
+    version  = "3.20.2",
+    helm_bin = "@helm_darwin_arm64//:bin",
+)
+
+toolchain(
+    name                    = "helm_darwin_arm64",
+    toolchain_type          = ":helm",
+    exec_compatible_with    = ["@platforms//os:osx", "@platforms//cpu:arm64"],
+    target_compatible_with  = ["@platforms//os:osx", "@platforms//cpu:arm64"],
+    toolchain               = ":helm_darwin_arm64_impl",
+)
+
+bzl_library(
+    name = "toolchain",
+    srcs = ["toolchain.bzl"],
+    deps = ["//private:providers"],
+)

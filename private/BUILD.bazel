@@ -1,0 +1,14 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "helm_lint.sh.tmpl",
+    "versions.bzl",
+])
+
+bzl_library(name = "providers", srcs = ["providers.bzl"])
+bzl_library(name = "versions", srcs = ["versions.bzl"])
+bzl_library(name = "repositories", srcs = ["repositories.bzl"], deps = [":versions"])
+bzl_library(name = "helm_template", srcs = ["helm_template.bzl"])
+bzl_library(name = "helm_lint", srcs = ["helm_lint.bzl"])

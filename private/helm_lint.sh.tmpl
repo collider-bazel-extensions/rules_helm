@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Generated wrapper for helm_lint. Resolves the helm binary + chart root
+# via runfiles and runs `helm lint`.
+set -euo pipefail
+
+if [[ -z "${RUNFILES_DIR:-}" ]]; then
+  if [[ -d "${0}.runfiles" ]]; then RUNFILES_DIR="${0}.runfiles"
+  elif [[ -d "$(dirname "$0").runfiles" ]]; then RUNFILES_DIR="$(dirname "$0").runfiles"
+  fi
+  export RUNFILES_DIR
+fi
+
+resolve() {
+  local p="$1"
+  if [[ -e "${RUNFILES_DIR}/_main/${p}" ]]; then
+    printf '%s\n' "${RUNFILES_DIR}/_main/${p}"
+  elif [[ -e "${RUNFILES_DIR}/${p}" ]]; then
+    printf '%s\n' "${RUNFILES_DIR}/${p}"
+  else
+    echo "helm_lint: not in runfiles: ${p}" >&2
+    exit 1
+  fi
+}
+
+HELM="$(resolve '{HELM_BIN}')"
+CHART="$(resolve '{CHART_ROOT}')"
+
+exec "$HELM" lint "$CHART" {STRICT} {EXTRA}

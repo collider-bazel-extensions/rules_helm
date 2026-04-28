@@ -1,0 +1,6 @@
+apiVersion: v2
+name: example
+description: Tiny chart used by rules_helm's in-tree tests to exercise helm_template + helm_lint end-to-end.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
