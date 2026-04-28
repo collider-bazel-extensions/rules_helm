@@ -2,7 +2,7 @@
 DefaultInfo without invoking helm at analysis time."""
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
-load("@rules_helm//:defs.bzl", "helm_lint", "helm_template")
+load("@rules_helm//:defs.bzl", "helm_lint", "helm_package", "helm_template")
 
 def _has_default_info_impl(ctx):
     env = analysistest.begin(ctx)
@@ -51,3 +51,15 @@ def helm_lint_test_suite(name):
         target_under_test = ":" + name + "_subject",
     )
     native.test_suite(name = name, tests = [":" + name + "_executable"])
+
+def helm_package_test_suite(name):
+    helm_package(
+        name = name + "_subject",
+        chart = ["//tests/example_chart:files"],
+        tags = ["manual"],
+    )
+    _has_default_info_test(
+        name = name + "_default_info",
+        target_under_test = ":" + name + "_subject",
+    )
+    native.test_suite(name = name, tests = [":" + name + "_default_info"])

@@ -1,10 +1,14 @@
 """Per-platform binary repo. Downloads + extracts the helm tarball for one
-platform, exposes the binary at the top-level path `helm`.
+platform, exposes the binary as `:bin`, and emits a fully-formed
+`helm_toolchain` + `toolchain` declaration so consumers can register the
+toolchain directly without rules_helm having to hardcode the version.
 """
 
-load(":versions.bzl", "HELM_VERSIONS")
+load(":versions.bzl", "HELM_VERSIONS", "PLATFORMS")
 
 _BUILD_TMPL = """\
+load("@rules_helm//toolchain:toolchain.bzl", "helm_toolchain")
+
 package(default_visibility = ["//visibility:public"])
 
 # Filegroup name MUST differ from the binary file name "helm" — bare
@@ -13,6 +17,24 @@ package(default_visibility = ["//visibility:public"])
 filegroup(
     name = "bin",
     srcs = ["helm"],
+)
+
+helm_toolchain(
+    name     = "toolchain_impl",
+    version  = "{version}",
+    helm_bin = ":bin",
+)
+
+# The toolchain declaration that consumers register. Each per-platform
+# repo emits its own so HelmInfo.version reflects the version actually
+# fetched by `helm.version()` at module-extension time, instead of being
+# pinned to whatever happened to be hardcoded in //toolchain:BUILD.bazel.
+toolchain(
+    name = "toolchain",
+    toolchain_type         = "@rules_helm//toolchain:helm",
+    exec_compatible_with   = {compat},
+    target_compatible_with = {compat},
+    toolchain              = ":toolchain_impl",
 )
 """
 
@@ -40,7 +62,10 @@ def _impl(rctx):
         stripPrefix = info["strip"],
     )
     rctx.file("WORKSPACE", "workspace(name = \"{}\")\n".format(rctx.name))
-    rctx.file("BUILD.bazel", _BUILD_TMPL)
+    rctx.file("BUILD.bazel", _BUILD_TMPL.format(
+        version = version,
+        compat = repr(PLATFORMS[platform]),
+    ))
 
 helm_binary_repo = repository_rule(
     implementation = _impl,
