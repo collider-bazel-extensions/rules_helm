@@ -31,6 +31,8 @@ must_list "example/Chart.yaml"
 must_list "example/values.yaml"
 must_list "example/templates/deployment.yaml"
 must_list "example/templates/service.yaml"
+must_list "example/charts/sub/Chart.yaml"
+must_list "example/charts/sub/templates/configmap.yaml"
 
 # 3. all mtimes are 0. tar's `-vt` shows the date/time per entry; 0 means
 # 1970-01-01 00:00. Easier check: tar --to-command='echo $TAR_MTIME' or

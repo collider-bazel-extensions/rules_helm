@@ -19,16 +19,14 @@ def _impl(ctx):
     tc = ctx.toolchains["//toolchain:helm"]
     helm = tc.helm.helm_bin
 
+    # See helm_template's notes: pick the shallowest Chart.yaml as the
+    # chart root so subchart Chart.yamls (under charts/<sub>/) don't
+    # confuse the rule.
     chart_yaml = None
     for f in ctx.files.chart:
-        if f.basename == "Chart.yaml":
-            if chart_yaml != None:
-                fail(
-                    "helm_package {}: chart contains more than one Chart.yaml ({} and {}). " +
-                    "Each helm_package target should point at exactly one chart.".format(
-                        ctx.label, chart_yaml.path, f.path,
-                    ),
-                )
+        if f.basename != "Chart.yaml":
+            continue
+        if chart_yaml == None or f.path.count("/") < chart_yaml.path.count("/"):
             chart_yaml = f
     if chart_yaml == None:
         fail("helm_package {}: chart attr must include a Chart.yaml file".format(ctx.label))

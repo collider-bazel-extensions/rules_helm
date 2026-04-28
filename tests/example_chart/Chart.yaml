@@ -4,3 +4,9 @@ description: Tiny chart used by rules_helm's in-tree tests to exercise helm_temp
 type: application
 version: 0.1.0
 appVersion: "1.0.0"
+dependencies:
+  - name: sub
+    version: 0.1.0
+    # Local subchart at charts/sub — exists to exercise multi-Chart.yaml
+    # path resolution in helm_template / helm_package / helm_lint.
+    repository: ""
