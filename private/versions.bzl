@@ -24,6 +24,9 @@ top-level path `helm` so the toolchain wiring is symmetric across
 platforms.
 """
 
+# Used when no module sets helm.version(...).
+DEFAULT_VERSION = "3.20.2"
+
 HELM_VERSIONS = {
     "3.20.2": {
         "linux_amd64": {

@@ -33,3 +33,19 @@ jobs:
           name: bazel-testlogs
           path: bazel-testlogs/
           if-no-files-found: ignore
+
+  consumer:
+    # rules_helm as a dependency, from the commit's git archive: a root
+    # without helm.version() resolves, a root's version wins, repeated /
+    # unsupported versions, and @rules_helm//... loads.
+    name: consumer (ubuntu-latest, git archive)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          bazelisk-cache: true
+          repository-cache: true
+
+      - name: Consumer checks
+        run: .github/consumer/check.sh "$RUNNER_TEMP/consumer"

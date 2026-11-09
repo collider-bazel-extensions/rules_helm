@@ -40,23 +40,19 @@ Pick via `helm.version(version = "...")` in your `MODULE.bazel`.
 ## Installation
 
 ```python
-bazel_dep(name = "rules_helm", version = "0.2.0")
+bazel_dep(name = "rules_helm", version = "0.2.2")
+```
 
+That's all: rules_helm's own `MODULE.bazel` fetches Helm and registers the toolchains. To choose the Helm version, set it in your root module:
+
+```python
 helm = use_extension("@rules_helm//:extensions.bzl", "helm")
 helm.version(version = "3.20.2")  # or "4.1.4"
-
-use_repo(helm,
-    "helm_linux_amd64",
-    "helm_darwin_amd64",
-    "helm_darwin_arm64",
-)
-
-register_toolchains(
-    "@helm_linux_amd64//:toolchain",
-    "@helm_darwin_amd64//:toolchain",
-    "@helm_darwin_arm64//:toolchain",
-)
 ```
+
+The extension fetches one version for the whole build: the root module's `helm.version()` if it sets one, otherwise rules_helm's own (the default, `3.20.2`). Other modules' tags are ignored. Two different versions in the root, or a version not pinned in `private/versions.bzl`, fail with a message naming `helm.version`. Before v0.2.2 the root had to set `helm.version()` or resolution failed with `does not generate repository "helm_linux_amd64"`; the `use_repo(...)` / `register_toolchains(...)` lines earlier READMEs asked for are harmless but no longer needed.
+
+The release archive (the tag tarball) leaves out `tests/`, which loads the dev-only `rules_shell`, so `bazel query @rules_helm//...` works for consumers. A `git_override` clone still contains `tests/`; name packages instead (for example `@rules_helm//:all`).
 
 Each per-platform repo emits its own `:toolchain` carrying the version
 that was actually fetched, so `HelmInfo.version` reflects what
