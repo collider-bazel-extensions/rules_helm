@@ -26,6 +26,8 @@ hermetic CLI. Distinct from the in-cluster operator rules
 | 12 | MODULE deps | `bazel_skylib`, `platforms`. **No `rules_python`** (no python in the runtime path). `rules_shell` is dev-only for the in-tree YAML-assertion test. | Smallest viable |
 | 13 | Naming | snake_case rules, `MixedCaseInfo` providers (`HelmInfo`), `UPPER_SNAKE` constants. | All siblings |
 | 14 | Update workflow | `tools/update_versions.sh <version>` curls per-platform `.sha256sum` companions and rewrites `private/versions.bzl`. | rules_opa pattern |
+| 15 | Version selection (v0.2.2) | One Helm version per build: the root module's `helm.version()`, else rules_helm's own (its MODULE.bazel), else `DEFAULT_VERSION` (`private/versions.bzl`); each `helm_<plat>` repo is created once. Through v0.2.1 only the root's tags were honoured, but rules_helm's own MODULE.bazel imports the repos and registers their toolchains for every consumer, so a root without `helm.version()` failed (`does not generate repository "helm_linux_amd64"`), and a root repeating the tag crashed the extension. Two different versions in one module, or an unsupported one, fail naming `helm.version`. | Same fix as rules_atlas#12 |
+| 16 | Release archive (v0.2.2) | `tests/` is `export-ignore` (`.gitattributes`): it loads the dev-only `rules_shell`, which made `@rules_helm//...` unloadable for consumers. `REPO.bazel` `ignore_directories` would also hide it from this repo's own tests. A `git_override` clone still contains `tests/`. CI's `consumer` job (`.github/consumer/check.sh`) checks both fixes from the commit's `git archive`. | Same fix as rules_kubectl#5 |
 
 ## Notes
 
