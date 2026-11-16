@@ -58,8 +58,27 @@ Each per-platform repo emits its own `:toolchain` carrying the version
 that was actually fetched, so `HelmInfo.version` reflects what
 `helm.version()` chose rather than a hardcoded value.
 
-`rules_helm` is **Bzlmod-only** in v0.1. Until it lands in BCR, consume
-via `archive_override` or a git pin pointing at a tag.
+`rules_helm` is **Bzlmod-only** in v0.1. Consume it via `archive_override` or
+a git pin pointing at a tag (see below for why that's required).
+
+### Name clash with the BCR's `rules_helm`
+
+The BCR has an unrelated module with the same name,
+[periareon/rules_helm](https://github.com/periareon/rules_helm) (formerly
+abrisco/rules_helm), with versions 0.0.9 to 0.35.0. Bzlmod resolves one module
+per name, so:
+
+- **The `archive_override` / `git_override` in your root module is required.**
+  Without it, `bazel_dep(name = "rules_helm", ...)` resolves from the BCR. That
+  fails for a version only this repo publishes, such as 0.2.2. And if any other
+  module in your build depends on the BCR's `rules_helm`, version selection
+  silently gives everyone the BCR's module.
+- **This module and the BCR's can't be in one build.** The root's override
+  applies to every module that depends on `rules_helm`, so a dependency that
+  expects the BCR's module gets this one. `bazel_dep(..., repo_name = ...)`
+  changes only the apparent repo name, not the module name, so it doesn't help.
+- For the same reason, this module can't be published to the BCR under this
+  name.
 
 ---
 
