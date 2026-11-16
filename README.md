@@ -41,7 +41,16 @@ Pick via `helm.version(version = "...")` in your `MODULE.bazel`.
 
 ```python
 bazel_dep(name = "rules_helm", version = "0.2.2")
+archive_override(
+    module_name = "rules_helm",
+    urls = ["https://github.com/collider-bazel-extensions/rules_helm/archive/refs/tags/v0.2.2.tar.gz"],
+    strip_prefix = "rules_helm-0.2.2",
+    integrity = "sha256-xJOU5C1692Nhk8gXHdLbOGBOB12NHd2hxWrOEc9Uv2M=",
+)
 ```
+
+The `archive_override` is required: the BCR's `rules_helm` is a different
+project ([below](#name-clash-with-the-bcrs-rules_helm)).
 
 That's all: rules_helm's own `MODULE.bazel` fetches Helm and registers the toolchains. To choose the Helm version, set it in your root module:
 
