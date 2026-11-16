@@ -221,3 +221,11 @@ PRs welcome. Conventions match the sibling rule sets:
 The toolchain selection is symmetric across platforms, but no one has
 run the example tests on Darwin yet. A pasted log from a green
 `bazel test //tests:all` on macOS would unblock the macOS support claim.
+
+---
+
+## Requesting a new rules package
+
+Want Bazel rules for another tool or service?
+[Request a rules package](https://github.com/collider-bazel-extensions/.github/issues/new?template=request-a-rules-package.yml).
+The [organization page](https://github.com/collider-bazel-extensions) lists every package.
