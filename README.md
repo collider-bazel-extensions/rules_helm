@@ -40,11 +40,11 @@ Pick via `helm.version(version = "...")` in your `MODULE.bazel`.
 ## Installation
 
 ```python
-bazel_dep(name = "rules_helm", version = "0.2.2")
+bazel_dep(name = "rules_helm", version = "0.2.3")
 archive_override(
     module_name = "rules_helm",
-    urls = ["https://github.com/collider-bazel-extensions/rules_helm/archive/refs/tags/v0.2.2.tar.gz"],
-    strip_prefix = "rules_helm-0.2.2",
+    urls = ["https://github.com/collider-bazel-extensions/rules_helm/archive/refs/tags/v0.2.3.tar.gz"],
+    strip_prefix = "rules_helm-0.2.3",
     integrity = "sha256-xJOU5C1692Nhk8gXHdLbOGBOB12NHd2hxWrOEc9Uv2M=",
 )
 ```
@@ -257,3 +257,7 @@ run the example tests on Darwin yet. A pasted log from a green
 Want Bazel rules for another tool or service?
 [Request a rules package](https://github.com/collider-bazel-extensions/.github/issues/new?template=request-a-rules-package.yml).
 The [organization page](https://github.com/collider-bazel-extensions) lists every package.
+
+## License
+
+[Apache License 2.0](LICENSE) (SPDX: `Apache-2.0`).
