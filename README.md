@@ -45,7 +45,7 @@ archive_override(
     module_name = "rules_helm",
     urls = ["https://github.com/collider-bazel-extensions/rules_helm/archive/refs/tags/v0.2.3.tar.gz"],
     strip_prefix = "rules_helm-0.2.3",
-    integrity = "sha256-xJOU5C1692Nhk8gXHdLbOGBOB12NHd2hxWrOEc9Uv2M=",
+    integrity = "sha256-5+rHkejlNPV/O8nAiwxlyIOxTP7Gq36Gj+CWeRVlhXo=",
 )
 ```
 
